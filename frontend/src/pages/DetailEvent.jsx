@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { ethers } from "ethers";
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractInfo';
 
 // Data dummy yang sama seperti di Home (Nanti ditarik dari Smart Contract)
 const DUMMY_EVENTS = [
@@ -9,7 +11,7 @@ const DUMMY_EVENTS = [
     date: "15 Juli 2026",
     time: "20:00 WITA",
     venue: "Lusail Stadium",
-    price: 0.05,
+    price: 0.01,
     sisaTiket: 12,
   },
   {
@@ -18,7 +20,7 @@ const DUMMY_EVENTS = [
     date: "12 Juli 2026",
     time: "22:00 WITA",
     venue: "Al Bayt Stadium",
-    price: 0.03,
+    price: 0.01,
     sisaTiket: 45,
   },
   {
@@ -54,6 +56,49 @@ export default function DetailEvent() {
   };
   const handleMin = () => {
     if (ticketCount > 1) setTicketCount(ticketCount - 1);
+  };
+
+  // State to disable the button while the transaction is mining
+  const [isPurchasing, setIsPurchasing] = useState(false);
+
+  const handleBuyTicket = async () => {
+    // 1. Double check they are connected to MetaMask
+    if (!window.ethereum) {
+      alert("Please connect your MetaMask wallet first!");
+      return;
+    }
+
+    try {
+      setIsPurchasing(true); // Start loading
+
+      // 2. Set up the Ethers Engine (v6 syntax)
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      
+      // 3. Connect to YOUR specific Smart Contract
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+      // 4. The Pinata metadata link (You can change this to your real IPFS link later)
+      const tokenURI = "ipfs://QmYourPinataCidHere/ticket.json";
+
+      // 5. Call the buyTicket function and send exactly 0.01 ETH
+      console.log("Sending transaction to the blockchain...");
+      const transaction = await contract.buyTicket(tokenURI, {
+        value: ethers.parseEther("0.01") 
+      });
+
+      // 6. Wait for the block to be mined
+      console.log("Waiting for block confirmation...");
+      await transaction.wait();
+
+      alert("🎉 Ticket purchased successfully!");
+      
+    } catch (error) {
+      console.error("Purchase failed:", error);
+      alert("Transaction failed. Check the console for details.");
+    } finally {
+      setIsPurchasing(false); // Stop loading
+    }
   };
 
   return (
@@ -133,16 +178,12 @@ export default function DetailEvent() {
               </span>
             </div>
 
-            {/* Tombol Checkout (Sementara hanya alert, nanti diarahkan ke komponen Checkout/Metamask) */}
-            <button
-              onClick={() => {
-                alert(
-                  `Memproses transaksi di MetaMask untuk ${ticketCount} tiket...`,
-                );
-                navigate("/my-tickets"); // Pindah halaman otomatis
-              }}
-              className="w-full bg-cupGold text-cupDark font-bold text-lg py-4 rounded-xl hover:bg-orange-400 transition-colors shadow-lg">
-              Lanjut Pembayaran via MetaMask
+            <button 
+              onClick={handleBuyTicket} 
+              disabled={isPurchasing}
+              className="w-full bg-blue-600 text-white font-bold text-lg px-6 py-4 rounded-xl hover:bg-blue-700 disabled:bg-gray-400 transition-colors shadow-lg"
+            >
+              {isPurchasing ? "Minting Ticket..." : "Buy Ticket (0.01 ETH)"}
             </button>
           </div>
         </div>
