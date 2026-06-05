@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractInfo';
+import { getLockedTicketTokenURI, isValidLockedTicketTokenURI } from '../nftConfig';
 
 // Data dummy yang sama seperti di Home (Nanti ditarik dari Smart Contract)
 const DUMMY_EVENTS = [
@@ -29,7 +30,7 @@ const DUMMY_EVENTS = [
     date: "10 Juli 2026",
     time: "19:00 WITA",
     venue: "Education City Stadium",
-    price: 0.02,
+    price: 0.001,
     sisaTiket: 0,
   },
 ];
@@ -78,8 +79,11 @@ export default function DetailEvent() {
       // 3. Connect to YOUR specific Smart Contract
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-      // 4. The Pinata metadata link (You can change this to your real IPFS link later)
-      const tokenURI = "ipfs://QmYourPinataCidHere/ticket.json";
+      // 4. Use a locked, canonical metadata URI to prevent malformed tokenURIs.
+      const tokenURI = getLockedTicketTokenURI();
+      if (!isValidLockedTicketTokenURI(tokenURI)) {
+        throw new Error("Invalid locked ticket metadata URI configuration.");
+      }
 
       // 5. Call the buyTicket function and send exactly 0.01 ETH
       console.log("Sending transaction to the blockchain...");
