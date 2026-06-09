@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { EventProvider } from './context/EventContext';
 import { AuthProvider } from './context/AuthContext';
+import AppShell from './components/AppShell';
 import Navbar from './components/Navbar';
 import Onboarding from './pages/Onboarding';
 import Home from './pages/Home';
@@ -12,17 +13,21 @@ import TicketValidation from './pages/TicketValidation';
 
 function AppContent({ account, setAccount }) {
   const location = useLocation();
-  const showNavbar = location.pathname !== '/';
+  const isOnboarding = location.pathname === '/';
+
+  if (isOnboarding) {
+    return (
+      <Routes>
+        <Route path="/" element={<Onboarding />} />
+      </Routes>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
-      {showNavbar && (
-        <Navbar account={account} setAccount={setAccount} />
-      )}
-
-      <main className={showNavbar ? 'max-w-7xl mx-auto' : ''}>
+    <AppShell>
+      <Navbar account={account} setAccount={setAccount} />
+      <main className="max-w-7xl mx-auto">
         <Routes>
-          <Route path="/" element={<Onboarding />} />
           <Route path="/home" element={<Home />} />
           <Route path="/admin" element={<DashboardAdmin account={account} />} />
           <Route path="/event/:id" element={<DetailEvent account={account} />} />
@@ -30,7 +35,7 @@ function AppContent({ account, setAccount }) {
           <Route path="/validasi" element={<TicketValidation />} />
         </Routes>
       </main>
-    </div>
+    </AppShell>
   );
 }
 

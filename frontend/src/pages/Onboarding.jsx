@@ -3,21 +3,21 @@ import { Link } from "react-router-dom";
 const features = [
   {
     icon: "🔗",
-    title: "Blockchain Secured",
+    title: "Aman di Blockchain",
     description:
-      "Every ticket is minted as an NFT on Ethereum. Ownership is verifiable and tamper-proof.",
+      "Setiap tiket dicetak sebagai NFT di Ethereum. Kepemilikan dapat diverifikasi dan anti-pemalsuan.",
   },
   {
     icon: "🛡️",
-    title: "Anti-Scalping",
+    title: "Anti-Caló",
     description:
-      "Smart contract rules limit purchases per wallet, keeping seats in the hands of real fans.",
+      "Aturan smart contract membatasi pembelian per dompet, menjaga kursi tetap di tangan penggemar sejati.",
   },
   {
     icon: "🎟️",
-    title: "NFT Tickets",
+    title: "Tiket NFT",
     description:
-      "Your match pass lives on-chain — scan, verify, and enter the stadium with confidence.",
+      "Tiket pertandingan Anda tersimpan di blockchain — pindai, verifikasi, dan masuk stadion dengan percaya diri.",
   },
 ];
 
@@ -38,8 +38,8 @@ export default function Onboarding() {
             <span className="text-cupGold">Tickets</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Decentralized e-ticketing for football&apos;s biggest stage. Secure,
-            transparent, and scalper-free — powered by smart contracts.
+            E-ticketing terdesentralisasi untuk panggung terbesar sepak bola.
+            Aman, transparan, dan bebas caló — didukung smart contract.
           </p>
         </div>
 
@@ -65,11 +65,11 @@ export default function Onboarding() {
           to="/home"
           className="animate-[slideUp_0.6s_ease-out_0.65s_both] bg-cupGold text-cupDark font-bold text-lg px-10 py-4 rounded-xl hover:bg-orange-400 transition-colors shadow-lg shadow-cupGold/20"
         >
-          Explore Matches →
+          Jelajahi Pertandingan →
         </Link>
 
         <p className="mt-8 text-xs text-gray-500 animate-[fadeIn_1s_ease-out_1s_both]">
-          Connect your MetaMask wallet on Sepolia testnet to purchase tickets
+          Hubungkan dompet MetaMask di jaringan Sepolia testnet untuk membeli tiket
         </p>
       </div>
     </div>
