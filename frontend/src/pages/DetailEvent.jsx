@@ -3,45 +3,17 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractInfo';
 import { getLockedTicketTokenURI, isValidLockedTicketTokenURI } from '../nftConfig';
+import { useEvents } from "../hooks/useEvents";
 
-// Data dummy yang sama seperti di Home (Nanti ditarik dari Smart Contract)
-const DUMMY_EVENTS = [
-  {
-    id: 1,
-    title: "Final: Brazil vs Germany",
-    date: "15 Juli 2026",
-    time: "20:00 WITA",
-    venue: "Lusail Stadium",
-    price: 0.01,
-    sisaTiket: 12,
-  },
-  {
-    id: 2,
-    title: "Semi-Final: Argentina vs France",
-    date: "12 Juli 2026",
-    time: "22:00 WITA",
-    venue: "Al Bayt Stadium",
-    price: 0.01,
-    sisaTiket: 45,
-  },
-  {
-    id: 3,
-    title: "Quarter-Final: Portugal vs Spain",
-    date: "10 Juli 2026",
-    time: "19:00 WITA",
-    venue: "Education City Stadium",
-    price: 0.001,
-    sisaTiket: 0,
-  },
-];
-
-export default function DetailEvent() {
-  const { id } = useParams(); // Mengambil ID dari URL
-  const event = DUMMY_EVENTS.find((e) => e.id === parseInt(id));
+export default function DetailEvent({ account }) {
+  const { id } = useParams();
+  const { getEventById, addUserTicket } = useEvents();
+  const event = getEventById(parseInt(id));
   const navigate = useNavigate();
 
   // State untuk melacak jumlah tiket yang mau dibeli
   const [ticketCount, setTicketCount] = useState(1);
+  const [isPurchasing, setIsPurchasing] = useState(false);
 
   if (!event) {
     return (
@@ -59,13 +31,15 @@ export default function DetailEvent() {
     if (ticketCount > 1) setTicketCount(ticketCount - 1);
   };
 
-  // State to disable the button while the transaction is mining
-  const [isPurchasing, setIsPurchasing] = useState(false);
-
   const handleBuyTicket = async () => {
     // 1. Double check they are connected to MetaMask
     if (!window.ethereum) {
       alert("Please connect your MetaMask wallet first!");
+      return;
+    }
+
+    if (!account) {
+      alert("Please connect your wallet first!");
       return;
     }
 
@@ -95,7 +69,11 @@ export default function DetailEvent() {
       console.log("Waiting for block confirmation...");
       await transaction.wait();
 
+      // 7. Record the ticket in our context
+      addUserTicket(account, event.id, ticketCount);
+
       alert("🎉 Ticket purchased successfully!");
+      setTicketCount(1);
       
     } catch (error) {
       console.error("Purchase failed:", error);
@@ -105,11 +83,13 @@ export default function DetailEvent() {
     }
   };
 
+  const availableSeats = event.seatQuantity - event.ticketsSold;
+
   return (
     <div className="p-8 max-w-5xl mx-auto">
       {/* Tombol Kembali */}
       <Link
-        to="/"
+        to="/home"
         className="text-cupBlue hover:text-cupGold font-semibold mb-6 inline-block">
         ← Kembali ke Daftar Pertandingan
       </Link>
@@ -141,7 +121,7 @@ export default function DetailEvent() {
                 <strong>⏰ Waktu:</strong> {event.time}
               </li>
               <li>
-                <strong>🎟️ Ketersediaan:</strong> {event.sisaTiket} Tiket
+                <strong>🎟️ Ketersediaan:</strong> {availableSeats} Tiket
                 Tersisa
               </li>
               <li>
@@ -184,10 +164,10 @@ export default function DetailEvent() {
 
             <button 
               onClick={handleBuyTicket} 
-              disabled={isPurchasing}
+              disabled={isPurchasing || availableSeats <= 0}
               className="w-full bg-blue-600 text-white font-bold text-lg px-6 py-4 rounded-xl hover:bg-blue-700 disabled:bg-gray-400 transition-colors shadow-lg"
             >
-              {isPurchasing ? "Minting Ticket..." : "Buy Ticket (0.01 ETH)"}
+              {isPurchasing ? "Minting Ticket..." : availableSeats <= 0 ? "Sold Out" : "Buy Ticket (0.01 ETH)"}
             </button>
           </div>
         </div>

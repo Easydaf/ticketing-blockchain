@@ -1,18 +1,10 @@
 import { Link } from "react-router-dom";
+import { useEvents } from "../hooks/useEvents";
 
-export default function MyTickets() {
-  // Simulasi data tiket yang sudah dibeli
-  const myPurchasedTickets = [
-    {
-      id: "TKT-001",
-      match: "Final: Brazil vs Germany",
-      venue: "Lusail Stadium",
-      date: "15 Juli 2026",
-      time: "20:00 WITA",
-      qty: 2,
-      status: "Valid",
-    },
-  ];
+export default function MyTickets({ account }) {
+  const { getUserTickets } = useEvents();
+  
+  const myPurchasedTickets = account ? getUserTickets(account) : [];
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
@@ -23,9 +15,9 @@ export default function MyTickets() {
       {myPurchasedTickets.length === 0 ? (
         <div className="text-center bg-white p-10 rounded-xl shadow">
           <p className="text-gray-500 mb-4">
-            Kamu belum memiliki tiket pertandingan apa pun.
+            {account ? "Kamu belum memiliki tiket pertandingan apa pun." : "Silahkan connect wallet terlebih dahulu untuk melihat tiket Anda."}
           </p>
-          <Link to="/" className="text-cupGold font-bold hover:underline">
+          <Link to="/home" className="text-cupGold font-bold hover:underline">
             Cari Pertandingan
           </Link>
         </div>
@@ -47,20 +39,19 @@ export default function MyTickets() {
                     {ticket.id}
                   </p>
                   <h3 className="text-2xl font-extrabold mb-2">
-                    {ticket.match}
+                    {ticket.eventTitle}
                   </h3>
                   <p className="text-gray-300 text-sm mb-4">
-                    📍 {ticket.venue}
+                    📍 {ticket.eventVenue}
                   </p>
                 </div>
                 <div className="bg-gray-800 p-3 rounded-lg">
                   <div className="flex justify-between text-sm">
-                    <span>📅 {ticket.date}</span>
-                    <span>⏰ {ticket.time}</span>
+                    <span>📅 {ticket.eventDate}</span>
                   </div>
                   <div className="mt-2 pt-2 border-t border-gray-600 flex justify-between font-bold">
                     <span>Jumlah Tiket:</span>
-                    <span className="text-cupGold">{ticket.qty} Tiket</span>
+                    <span className="text-cupGold">{ticket.quantity} Tiket</span>
                   </div>
                 </div>
               </div>
@@ -85,3 +76,4 @@ export default function MyTickets() {
     </div>
   );
 }
+
