@@ -9,7 +9,7 @@ const features = [
   },
   {
     icon: "🛡️",
-    title: "Anti-Caló",
+    title: "Anti-Calo",
     description:
       "Aturan smart contract membatasi pembelian per dompet, menjaga kursi tetap di tangan penggemar sejati.",
   },
@@ -39,7 +39,7 @@ export default function Onboarding() {
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
             E-ticketing terdesentralisasi untuk panggung terbesar sepak bola.
-            Aman, transparan, dan bebas caló — didukung smart contract.
+            Aman, transparan, dan bebas calo — didukung smart contract.
           </p>
         </div>
 

@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { useEvents } from "../hooks/useEvents";
+import FundsManagement from "../components/FundsManagement";
 
 const emptyForm = {
   title: "",
@@ -194,7 +195,7 @@ export default function DashboardAdmin() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <div className="glass-card p-6 border-t-4 border-blue-500">
           <p className="text-gray-400 font-semibold text-sm">Total Event Aktif</p>
           <p className="text-4xl font-bold text-white mt-2">{events.length}</p>
@@ -210,6 +211,7 @@ export default function DashboardAdmin() {
             <span className="text-lg text-gray-400">ETH</span>
           </p>
         </div>
+        <FundsManagement />
       </div>
 
       <div className="glass-card p-6">
