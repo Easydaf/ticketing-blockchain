@@ -46,47 +46,49 @@ export default function Navbar({ account, setAccount }) {
   };
 
   return (
-    <nav className="bg-cupDark/80 backdrop-blur-md border-b border-white/10 p-4 shadow-md flex justify-between items-center text-white">
-      <div className="font-bold text-2xl text-cupGold">
-        MetaCup Tickets
-      </div>
+    <>
+      <nav className="bg-cupDark/80 backdrop-blur-md border-b border-white/10 p-4 shadow-md flex justify-between items-center text-white">
+        <div className="font-bold text-2xl text-cupGold">
+          MetaCup Tickets
+        </div>
 
-      <div className="flex gap-6 items-center font-semibold">
-        <Link to="/home" className="hover:text-cupGold transition-colors">Home</Link>
-        <Link to="/my-tickets" className="hover:text-cupGold transition-colors">My Tickets</Link>
+        <div className="flex gap-6 items-center font-semibold">
+          <Link to="/home" className="hover:text-cupGold transition-colors">Home</Link>
+          <Link to="/my-tickets" className="hover:text-cupGold transition-colors">My Tickets</Link>
 
-        {isAdminLoggedIn ? (
-          <>
-            <Link to="/admin" className="hover:text-cupGold transition-colors text-purple-300 font-bold">Admin Dashboard</Link>
+          {isAdminLoggedIn ? (
+            <>
+              <Link to="/admin" className="hover:text-cupGold transition-colors text-purple-300 font-bold">Admin Dashboard</Link>
+              <button
+                onClick={logoutAdmin}
+                className="bg-red-600/80 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+              >
+                Exit Admin
+              </button>
+            </>
+          ) : (
             <button
-              onClick={logoutAdmin}
-              className="bg-red-600/80 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+              onClick={() => setShowLoginModal(true)}
+              className="bg-purple-600/80 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
             >
-              Exit Admin
+              Admin Login
             </button>
-          </>
-        ) : (
-          <button
-            onClick={() => setShowLoginModal(true)}
-            className="bg-purple-600/80 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
-          >
-            Admin Login
-          </button>
-        )}
+          )}
 
-        {account ? (
-          <div className="bg-green-600/80 px-4 py-2 rounded-lg text-sm border border-green-400/50">
-            {account.slice(0, 6)}...{account.slice(-4)}
-          </div>
-        ) : (
-          <button
-            onClick={connectWallet}
-            className="bg-cupGold text-cupDark px-4 py-2 rounded-lg hover:bg-orange-400 transition font-bold"
-          >
-            Connect Wallet
-          </button>
-        )}
-      </div>
+          {account ? (
+            <div className="bg-green-600/80 px-4 py-2 rounded-lg text-sm border border-green-400/50">
+              {account.slice(0, 6)}...{account.slice(-4)}
+            </div>
+          ) : (
+            <button
+              onClick={connectWallet}
+              className="bg-cupGold text-cupDark px-4 py-2 rounded-lg hover:bg-orange-400 transition font-bold"
+            >
+              Connect Wallet
+            </button>
+          )}
+        </div>
+      </nav>
 
       {showLoginModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50">
@@ -144,6 +146,6 @@ export default function Navbar({ account, setAccount }) {
           </div>
         </div>
       )}
-    </nav>
+    </>
   );
 }

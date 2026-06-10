@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-contract FootballTicket is ERC721URIStorage {
+contract FootballTicket is ERC721 {
     uint256 private _nextTokenId;
     address public owner; 
     
@@ -15,10 +15,12 @@ contract FootballTicket is ERC721URIStorage {
         address buyer;
         uint256 pricePaid;
         uint256 purchaseTime;
+        uint256 eventId;
     }
 
     // Mapping
     mapping(uint256 => TicketDetails) public ticketRegistry;
+    mapping(address => mapping(uint256 => uint256)) public ticketsPurchasedPerEvent;
 
     // Event
     event TicketPurchased(address indexed buyer, uint256 indexed ticketId, uint256 timestamp);
@@ -38,34 +40,46 @@ contract FootballTicket is ERC721URIStorage {
     // ==========================================
 
     // Function 1 (Write): The main logic to buy a ticket
-    function buyTicket(string memory tokenURI) public payable {
+    function buyTicket(uint256 eventId, uint256 quantity, string memory /* tokenURI */) public payable {
         // Require: Rules that must be met to proceed
-        require(msg.value >= TICKET_PRICE, "Not enough ETH sent to buy the ticket.");
-        require(_nextTokenId < MAX_TICKETS, "Sorry, the match is sold out!");
+        require(quantity > 0, "Quantity must be at least 1.");
+        require(ticketsPurchasedPerEvent[msg.sender][eventId] + quantity <= 2, "Purchase limit exceeded: Max 2 tickets per event per wallet.");
+        require(msg.value >= TICKET_PRICE * quantity, "Not enough ETH sent to buy the tickets.");
+        require(_nextTokenId + quantity <= MAX_TICKETS, "Sorry, the match is sold out!");
 
-        uint256 tokenId = _nextTokenId++;
-        
-        // Save the data into our custom Struct and Mapping
-        ticketRegistry[tokenId] = TicketDetails({
-            buyer: msg.sender,
-            pricePaid: msg.value,
-            purchaseTime: block.timestamp // block.timestamp gets the current network time
-        });
+        for (uint256 i = 0; i < quantity; i++) {
+            uint256 tokenId = _nextTokenId++;
+            
+            // Save the data into our custom Struct and Mapping
+            ticketRegistry[tokenId] = TicketDetails({
+                buyer: msg.sender,
+                pricePaid: TICKET_PRICE,
+                purchaseTime: block.timestamp,
+                eventId: eventId
+            });
 
-        // Mint the NFT and set the Pinata IPFS link
-        _mint(msg.sender, tokenId);
-        _setTokenURI(tokenId, tokenURI);
+            // Mint the NFT
+            _mint(msg.sender, tokenId);
 
-        // Trigger the event notification
-        emit TicketPurchased(msg.sender, tokenId, block.timestamp);
+            // Trigger the event notification
+            emit TicketPurchased(msg.sender, tokenId, block.timestamp);
+        }
+
+        ticketsPurchasedPerEvent[msg.sender][eventId] += quantity;
     }
 
     // Function 2 (View): To read data without spending gas fees
-    function getTicketInfo(uint256 ticketId) public view returns (address, uint256, uint256) {
+    function getTicketInfo(uint256 ticketId) public view returns (address, uint256, uint256, uint256) {
         require(ticketId < _nextTokenId, "This ticket does not exist yet!");
         
         TicketDetails memory details = ticketRegistry[ticketId];
-        return (details.buyer, details.pricePaid, details.purchaseTime);
+        return (details.buyer, details.pricePaid, details.purchaseTime, details.eventId);
+    }
+
+    // Function override to return metadata URI for all tickets to save deployment & minting gas fees
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        require(tokenId < _nextTokenId, "This ticket does not exist yet!");
+        return "ipfs://bafkreieo5xbybigup2yftevba5c5ois43fnaazs7uin2ftre4zpeiukynu";
     }
 
     // Function 3 (Write/Admin): Uses the onlyOwner modifier
