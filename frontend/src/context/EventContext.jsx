@@ -100,17 +100,23 @@ export function EventProvider({ children }) {
       });
   };
 
-  const addUserTicket = (userAddress, eventId, quantity, txHash) => {
-    const newTicket = {
-      id: `TKT-${Date.now()}`,
-      userAddress,
-      eventId,
-      quantity,
-      purchaseDate: new Date().toISOString(),
-      status: 'Valid',
-      txHash: txHash || '0x' + 'f'.repeat(64), // Default fallback
-    };
-    setUserTickets([...userTickets, newTicket]);
+  const addUserTicket = (userAddress, eventId, quantity, txHash, tokenIds) => {
+    const newTickets = [];
+    for (let i = 0; i < quantity; i++) {
+      const tokenId = tokenIds && tokenIds[i] !== undefined ? tokenIds[i] : `MOCK-${Date.now() + i}`;
+      const newTicket = {
+        id: `TKT-${tokenId}`,
+        userAddress,
+        eventId,
+        quantity: 1, // Store each ticket NFT as its own record
+        purchaseDate: new Date().toISOString(),
+        status: 'Valid',
+        txHash: txHash || '0x' + 'f'.repeat(64),
+      };
+      newTickets.push(newTicket);
+    }
+    
+    setUserTickets([...userTickets, ...newTickets]);
 
     setEvents(
       events.map((e) =>
@@ -120,7 +126,7 @@ export function EventProvider({ children }) {
       )
     );
 
-    return newTicket.id;
+    return newTickets.map(t => t.id);
   };
 
   const getEventById = (eventId) => {

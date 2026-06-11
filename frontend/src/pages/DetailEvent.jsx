@@ -69,12 +69,33 @@ export default function DetailEvent({ account }) {
       }
 
       const valueToSend = ethers.parseEther((0.01 * ticketCount).toFixed(2));
-      const transaction = await contract.buyTicket(event.id, ticketCount, tokenURI, {
-        value: valueToSend
-      });
+      const transaction = await contract.buyTicket(
+        event.id,
+        ticketCount,
+        event.title,
+        event.venue,
+        event.date,
+        tokenURI,
+        {
+          value: valueToSend
+        }
+      );
 
-      await transaction.wait();
-      addUserTicket(account, event.id, ticketCount, transaction.hash);
+      const receipt = await transaction.wait();
+
+      // Parse Token IDs emitted from TicketPurchased events in receipt logs
+      const tokenIds = receipt.logs
+        .map((log) => {
+          try {
+            return contract.interface.parseLog(log);
+          } catch (e) {
+            return null;
+          }
+        })
+        .filter((parsed) => parsed && parsed.name === "TicketPurchased")
+        .map((parsed) => parsed.args.ticketId.toString());
+
+      addUserTicket(account, event.id, ticketCount, transaction.hash, tokenIds);
 
       alert("🎉 Ticket purchased successfully!");
       setTicketCount(maxAllowedToBuy > 0 ? 1 : 0);

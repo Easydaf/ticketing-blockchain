@@ -1,7 +1,9 @@
 // src/contractInfo.js
 
-export const CONTRACT_ADDRESS = "0xC3a72ce0B64A94F6731b8e48e4A4D3224FdedfDB"; 
+// Replace this with your actual contract address from GitHub
+export const CONTRACT_ADDRESS = "0x5bf4AD3ee242851d8626Ab6B9844B2B1FC3A1D94"; 
 
+// Replace this array with the massive JSON wall of text from your ABI file
 export const CONTRACT_ABI = [
   {
     "inputs": [],
@@ -288,6 +290,21 @@ export const CONTRACT_ABI = [
       },
       {
         "internalType": "string",
+        "name": "matchTitle",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "venue",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "matchDate",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
         "name": "",
         "type": "string"
       }
@@ -549,6 +566,21 @@ export const CONTRACT_ABI = [
         "internalType": "uint256",
         "name": "eventId",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "matchTitle",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "venue",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "matchDate",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
