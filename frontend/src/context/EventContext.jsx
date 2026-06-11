@@ -100,7 +100,7 @@ export function EventProvider({ children }) {
       });
   };
 
-  const addUserTicket = (userAddress, eventId, quantity) => {
+  const addUserTicket = (userAddress, eventId, quantity, txHash) => {
     const newTicket = {
       id: `TKT-${Date.now()}`,
       userAddress,
@@ -108,6 +108,7 @@ export function EventProvider({ children }) {
       quantity,
       purchaseDate: new Date().toISOString(),
       status: 'Valid',
+      txHash: txHash || '0x' + 'f'.repeat(64), // Default fallback
     };
     setUserTickets([...userTickets, newTicket]);
 

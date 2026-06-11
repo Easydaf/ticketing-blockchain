@@ -74,7 +74,7 @@ export default function DetailEvent({ account }) {
       });
 
       await transaction.wait();
-      addUserTicket(account, event.id, ticketCount);
+      addUserTicket(account, event.id, ticketCount, transaction.hash);
 
       alert("🎉 Ticket purchased successfully!");
       setTicketCount(maxAllowedToBuy > 0 ? 1 : 0);

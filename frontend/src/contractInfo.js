@@ -1,9 +1,7 @@
 // src/contractInfo.js
 
-// Replace this with your actual contract address from GitHub
 export const CONTRACT_ADDRESS = "0xC3a72ce0B64A94F6731b8e48e4A4D3224FdedfDB"; 
 
-// Replace this array with the massive JSON wall of text from your ABI file
 export const CONTRACT_ABI = [
   {
     "inputs": [],
