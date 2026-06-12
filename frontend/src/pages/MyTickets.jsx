@@ -1,8 +1,54 @@
 import { Link } from "react-router-dom";
 import { useEvents } from "../hooks/useEvents";
 
+// Helper to determine if a ticket has exceeded its match date
+const isTicketExpired = (dateStr) => {
+  if (!dateStr) return false;
+  
+  const cleanStr = dateStr.trim().toLowerCase();
+  
+  // Try standard JS Date parsing first (e.g. English format or ISO date)
+  const tempDate = new Date(cleanStr);
+  if (!isNaN(tempDate.getTime())) {
+    // Set to end of the day (23:59:59) for consistency
+    tempDate.setHours(23, 59, 59, 999);
+    return tempDate < new Date();
+  }
+  
+  // Parse Indonesian locale strings (e.g. "15 Juli 2026")
+  const parts = cleanStr.split(/\s+/);
+  if (parts.length >= 3) {
+    const day = parseInt(parts[0], 10);
+    const monthName = parts[1];
+    const year = parseInt(parts[2], 10);
+    
+    const INDO_MONTHS = {
+      januari: 0, jan: 0,
+      februari: 1, pebruari: 1, feb: 1,
+      maret: 2, mar: 2,
+      april: 3, apr: 3,
+      mei: 4,
+      juni: 5, jun: 5,
+      juli: 6, jul: 6,
+      agustus: 7, agt: 7, aug: 7,
+      september: 8, sep: 8, sept: 8,
+      oktober: 9, okt: 9, oct: 9,
+      november: 10, nov: 10,
+      desember: 11, des: 11, dec: 11
+    };
+    
+    const month = INDO_MONTHS[monthName];
+    if (month !== undefined && !isNaN(day) && !isNaN(year)) {
+      const matchDate = new Date(year, month, day, 23, 59, 59, 999);
+      return matchDate < new Date();
+    }
+  }
+  
+  return false;
+};
+
 export default function MyTickets({ account }) {
-  const { getUserTickets } = useEvents();
+  const { getUserTickets, deleteUserTicket } = useEvents();
   const myPurchasedTickets = account ? getUserTickets(account) : [];
 
   return (
@@ -26,6 +72,10 @@ export default function MyTickets({ account }) {
             const buyerAddress = ticket.userAddress || account || "0x0000000000000000000000000000000000000000";
             const txHash = ticket.txHash || "0x" + "f".repeat(64); // Fallback for old local storage tickets
             
+            // Check if ticket event date has passed
+            const isExpired = isTicketExpired(ticket.eventDate);
+            const statusText = isExpired ? "EXPIRED" : "VERIFIED";
+
             // Format structured text for QR scanner showing raw Buyer Wallet and Transaction Hash
             const qrText = `METACUP TICKET VERIFICATION
 ---------------------------
@@ -36,7 +86,7 @@ Date: ${ticket.eventDate}
 Quantity: ${ticket.quantity} Ticket(s)
 Buyer Wallet: ${buyerAddress}
 Tx Hash: ${txHash}
-Status: VERIFIED`;
+Status: ${statusText}`;
 
             // URL-encode the QR text data
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrText)}`;
@@ -44,10 +94,30 @@ Status: VERIFIED`;
             return (
               <div
                 key={ticket.id}
-                className="glass-card border-2 border-green-500/50 overflow-hidden flex flex-col sm:flex-row relative"
+                className={`glass-card border-2 ${
+                  isExpired ? "border-red-500/30" : "border-green-500/50"
+                } overflow-hidden flex flex-col sm:flex-row relative`}
               >
-                <div className="absolute top-4 right-[-35px] bg-green-500 text-white font-bold py-1 px-10 transform rotate-45 shadow-md">
-                  {ticket.status}
+                {/* Delete Ticket button (X) in top left corner */}
+                <button
+                  onClick={() => {
+                    if (window.confirm("Are you sure to delete this ticket?")) {
+                      deleteUserTicket(ticket.id);
+                    }
+                  }}
+                  className="absolute top-2 left-2 z-30 bg-black/60 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center transition-all duration-200 border border-white/20 text-xs font-bold shadow-md cursor-pointer hover:scale-105"
+                  title="Delete Ticket"
+                >
+                  ✕
+                </button>
+
+                {/* Status Ribbon */}
+                <div
+                  className={`absolute top-4 right-[-35px] ${
+                    isExpired ? "bg-red-600" : "bg-green-500"
+                  } text-white font-bold py-1 px-10 transform rotate-45 shadow-md text-xs uppercase tracking-wider`}
+                >
+                  {isExpired ? "Expired" : ticket.status}
                 </div>
 
                 <div className="bg-cupDark/80 text-white p-6 sm:w-2/3 flex flex-col justify-between border-r-2 border-dashed border-white/20">
@@ -58,7 +128,9 @@ Status: VERIFIED`;
                   </div>
                   <div className="bg-black/30 p-3 rounded-lg border border-white/10">
                     <div className="flex justify-between text-sm">
-                      <span>📅 {ticket.eventDate}</span>
+                      <span className={isExpired ? "text-red-400 font-bold" : ""}>
+                        📅 {ticket.eventDate} {isExpired && "(Expired)"}
+                      </span>
                     </div>
                     <div className="mt-2 pt-2 border-t border-white/10 flex justify-between font-bold">
                       <span>Jumlah Tiket:</span>

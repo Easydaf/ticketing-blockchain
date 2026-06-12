@@ -29,17 +29,17 @@ The contract is written in **Solidity (v0.8.28)** and acts as the decentralized 
 * **State Variables & Structs**:
   * `TICKET_PRICE = 0.01 ether`: The standard cost of one ticket.
   * `MAX_TICKETS = 1000`: The global ticket cap for the stadium.
-  * `TicketDetails` struct: Stores on-chain data for each ticket ID, including the `buyer` address, `pricePaid`, the `purchaseTime`, and the associated `eventId` (match ID).
+  * `TicketDetails` struct: Stores on-chain data for each ticket ID, including the `buyer` address, `pricePaid`, the `purchaseTime`, the associated `eventId` (match ID), and the dynamic match parameters (`matchTitle`, `venue`, `matchDate`).
 * **Anti-Scalping Mapping**:
   * `ticketsPurchasedPerEvent`: A nested mapping (`address => mapping(uint256 => uint256)`) that keeps track of how many tickets a specific wallet address has purchased for a specific match ID.
 
 #### Core Contract Functions:
-1. **`buyTicket(uint256 eventId, uint256 quantity, string memory tokenURI)`**:
+1. **`buyTicket(uint256 eventId, uint256 quantity, string memory matchTitle, string memory venue, string memory matchDate, string memory tokenURI)`**:
    * **Validation (Requires)**: Checks that the quantity is at least 1, the user hasn't exceeded the limit of 2 tickets for this specific `eventId`, the paid value matches `TICKET_PRICE * quantity`, and the match is not sold out.
    * **Minting Loop**: Loops `quantity` times, generating a new `tokenId`, recording ticket ownership details in the registry, and executing the mint (`_mint(msg.sender, tokenId)`).
    * **Limit Update**: Increments the user's purchased counter for that event.
 2. **`tokenURI(uint256 tokenId)`**:
-   * **Gas Optimization**: Instead of storing unique strings for every ticket on-chain (which is extremely gas-expensive), we override the `tokenURI` function to dynamically return a single static IPFS metadata link (`ipfs://bafkreieo5xbybigup2yftevba5c5ois43fnaazs7uin2ftre4zpeiukynu`) for all ticket NFTs.
+   * **Gas Optimization / Dynamic Metadata**: Overrides the `tokenURI` function to dynamically return a Base64-encoded on-chain JSON data URI embedding the specific ticket details, match parameters, and the official MetaCup ticket IPFS image (`ipfs://bafkreihj25pbqko6trc6seo6g3hjmxkw37a2tnvtt2rfusmyxpckx4dimm`).
 3. **`withdrawFunds()`**:
    * Restricted to the contract `owner` via the `onlyOwner` modifier, allowing the football club or organizer to withdraw accumulated ticket sales revenue (ether) to their wallet.
 
@@ -49,7 +49,7 @@ The contract is written in **Solidity (v0.8.28)** and acts as the decentralized 
 Built with **React (Vite)** and styled with **Tailwind CSS**. It communicates with the Ethereum blockchain via **Ethers.js**.
 
 * **Blockchain Bridge (`contractInfo.js`)**:
-  * Contains the deployment address of the contract on the **Sepolia testnet** (`0xC3a72ce0B64A94F6731b8e48e4A4D3224FdedfDB`) and the **ABI (Application Binary Interface)** which serves as the map for the frontend to call contract functions.
+  * Contains the deployment address of the contract on the **Sepolia testnet** (`0x5bf4AD3ee242851d8626Ab6B9844B2B1FC3A1D94`) and the **ABI (Application Binary Interface)** which serves as the map for the frontend to call contract functions.
 * **React State & Contexts (`context/`)**:
   * `EventContext.jsx`: Simulates the match catalog and user ticket listing. While ticket validity is secured on-chain, storing match schedules and ticket records in `localStorage` caches them locally for instantaneous page loading.
   * `AuthContext.jsx`: Simple session provider managing Admin credentials (`admin123` / `admin123`).
@@ -58,7 +58,7 @@ Built with **React (Vite)** and styled with **Tailwind CSS**. It communicates wi
 1. **Home/Browsing (`Home.jsx`)**: Lists upcoming matches (e.g. *Brazil vs Germany*), displaying ticket prices, availability, and routing options.
 2. **Buying Tickets (`DetailEvent.jsx`)**:
    * **UX Limit Protection**: Checks the wallet's local ticket count for that match. If the user has already bought 1 ticket, it locks the ticket quantity selector to a maximum of 1. If they have bought 2, it disables the buy button entirely and displays a warning banner.
-   * **Transaction Execution**: Instantiates a contract connection using `BrowserProvider(window.ethereum)`, estimates the total ETH value, and invokes `contract.buyTicket(event.id, ticketCount, tokenURI)`.
+   * **Transaction Execution**: Instantiates a contract connection using `BrowserProvider(window.ethereum)`, estimates the total ETH value, and invokes `contract.buyTicket(event.id, ticketCount, event.title, event.venue, event.date, tokenURI)`.
    * **Revert Error Handlers**: Catches transaction rejections and specific smart contract revert strings (e.g., if the on-chain anti-scalping check fails, it cleanly alerts: *"❌ Purchase Limit Exceeded: You can only buy a maximum of 2 tickets per match."*).
 3. **Tickets Dashboard (`MyTickets.jsx`)**: Displays the user's digital tickets with active QR codes (representing ticket IDs) generated dynamically.
 4. **Ticket Validation (`TicketValidation.jsx`)**: Simulates the entry scanner, reading the ticket codes to check database matches.
@@ -76,7 +76,7 @@ To explain how the code executes in sequence, follow this flow:
 [ Frontend verifies limits locally (2 - existing < selected?) ] ──(Exceeded)──► [ Block click & show alert ]
                    │
                    ▼ (Allowed)
-[ Frontend formats contract inputs (eventId, quantity, tokenURI) ]
+[ Frontend formats contract inputs (eventId, quantity, matchTitle, venue, matchDate, tokenURI) ]
                    │
                    ▼
 [ MetaMask pop-up requests user signature and Sepolia ETH gas approval ]

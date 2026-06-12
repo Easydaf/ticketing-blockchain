@@ -137,6 +137,10 @@ export function EventProvider({ children }) {
     return events;
   };
 
+  const deleteUserTicket = (ticketId) => {
+    setUserTickets(userTickets.filter((t) => t.id !== ticketId));
+  };
+
   const value = {
     events,
     userTickets,
@@ -144,6 +148,7 @@ export function EventProvider({ children }) {
     deleteEvent,
     getUserTickets,
     addUserTicket,
+    deleteUserTicket,
     getEventById,
     getAllEvents,
   };
